@@ -13,16 +13,12 @@ namespace Refactoring
         public static void Start(List<User> userList, List<Product> productList)
         {
             // Write welcome message
-            Console.WriteLine("Welcome to TUSC");
-            Console.WriteLine("---------------");
+            DisplayWelcomeMessage();
 
             // Login
             Login:
 
-            // Prompt for user input
-            Console.WriteLine();
-            Console.WriteLine("Enter Username:");
-            string userName = GetUserEntry();
+            string userName = PromptUserForUsername();
 
             // Validate Username
             bool isValidUser = false;
@@ -39,9 +35,7 @@ namespace Refactoring
 
                 if (isValidUser)
                 {
-                    // Prompt for user input
-                    Console.WriteLine("Enter Password:");
-                    string userPassword = GetUserEntry();
+                    string userPassword = PromptUserForPassword();
 
                     // Validate Password
                     bool isValidPassword = false;
@@ -59,11 +53,7 @@ namespace Refactoring
                     if (isValidPassword)
                     {
                         // Show welcome message
-                        Console.Clear();
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine();
-                        Console.WriteLine("Login successful! Welcome " + userName + "!");
-                        Console.ResetColor();
+                        DisplayLoginSuccessfulMessage(userName);
                         
                         // Show remaining balance
                         double userBalance = 0;
@@ -77,8 +67,7 @@ namespace Refactoring
                                 userBalance = user.Balance;
 
                                 // Show balance 
-                                Console.WriteLine();
-                                Console.WriteLine("Your balance is " + user.Balance.ToString("C"));
+                                DisplayCurrentBalance(user.Balance);
                             }
                         }
 
@@ -86,18 +75,10 @@ namespace Refactoring
                         while (true)
                         {
                             // Prompt for user input
-                            Console.WriteLine();
-                            Console.WriteLine("What would you like to buy?");
-                            for (int i = 0; i < 7; i++)
-                            {
-                                Product product = productList[i];
-                                Console.WriteLine(i + 1 + ": " + product.Name + " (" + product.Price.ToString("C") + ")");
-                            }
-                            Console.WriteLine(productList.Count + 1 + ": Exit");
+                            DisplayProductList(productList);
 
                             // Prompt for user input
-                            Console.WriteLine("Enter a number:");
-                            string answer = GetUserEntry();
+                            string answer = PromptUserForNumber();
                             int productChoice = Convert.ToInt32(answer);
                             productChoice = productChoice - 1; 
 
@@ -124,41 +105,28 @@ namespace Refactoring
 
 
                                 // Prevent console from closing
-                                Console.WriteLine();
-                                Console.WriteLine("Press Enter key to exit");
-                                GetUserEntry();
+                                PromptUserToExit();
                                 return;
                             }
                             else
                             {
-                                Console.WriteLine();
-                                Console.WriteLine("You want to buy: " + productList[productChoice].Name);
-                                Console.WriteLine("Your balance is " + userBalance.ToString("C"));
+                                DisplayPurchasePlan(userBalance, productList[productChoice].Name);
 
                                 // Prompt for user input
-                                Console.WriteLine("Enter amount to purchase:");
-                                answer = GetUserEntry();
+                                answer = PromptUserForPurchaseAmount();
                                 int purchaseQuantity = Convert.ToInt32(answer);
 
                                 // Check if balance - quantity * price is less than 0
                                 if (userBalance - productList[productChoice].Price * purchaseQuantity < 0)
                                 {
-                                    Console.Clear();
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine();
-                                    Console.WriteLine("You do not have enough money to buy that.");
-                                    Console.ResetColor();
+                                    DisplayNotEnoughMoney();
                                     continue;
                                 }
 
                                 // Check if quantity is less than quantity
-                                if (productList[productChoice].Qty <= purchaseQuantity)
+                                if (productList[productChoice].Quantity <= purchaseQuantity)
                                 {
-                                    Console.Clear();
-                                    Console.ForegroundColor = ConsoleColor.Red;
-                                    Console.WriteLine();
-                                    Console.WriteLine("Sorry, " + productList[productChoice].Name + " is out of stock");
-                                    Console.ResetColor();
+                                    DisplayOutOfStock(productList[productChoice].Name);
                                     continue;
                                 }
 
@@ -169,22 +137,14 @@ namespace Refactoring
                                     userBalance = userBalance - productList[productChoice].Price * purchaseQuantity;
 
                                     // Quanity = Quantity - Quantity
-                                    productList[productChoice].Qty = productList[productChoice].Qty - purchaseQuantity;
+                                    productList[productChoice].Quantity = productList[productChoice].Quantity - purchaseQuantity;
 
-                                    Console.Clear();
-                                    Console.ForegroundColor = ConsoleColor.Green;
-                                    Console.WriteLine("You bought " + purchaseQuantity + " " + productList[productChoice].Name);
-                                    Console.WriteLine("Your new balance is " + userBalance.ToString("C"));
-                                    Console.ResetColor();
+                                    DisplayPurchaseSummary(productList[productChoice].Name, userBalance, purchaseQuantity);
                                 }
                                 else
                                 {
                                     // Quantity is less than zero
-                                    Console.Clear();
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                    Console.WriteLine();
-                                    Console.WriteLine("Purchase cancelled");
-                                    Console.ResetColor();
+                                    DisplayPurchasedCancelled();
                                 }
                             }
                         }
@@ -192,11 +152,7 @@ namespace Refactoring
                     else
                     {
                         // Invalid Password
-                        Console.Clear();
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine();
-                        Console.WriteLine("You entered an invalid password.");
-                        Console.ResetColor();
+                        DisplayInvalidPassword();
 
                         goto Login;
                     }
@@ -204,25 +160,155 @@ namespace Refactoring
                 else
                 {
                     // Invalid User
-                    Console.Clear();
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine();
-                    Console.WriteLine("You entered an invalid user.");
-                    Console.ResetColor();
+                    DisplayInvalidUser();
 
                     goto Login;
                 }
             }
 
             // Prevent console from closing
+            PromptUserToExit();
+        }
+
+        #region Display Messages
+
+        private static void DisplayPurchasePlan(double userBalance,string productName)
+        {
             Console.WriteLine();
-            Console.WriteLine("Press Enter key to exit");
-            GetUserEntry();
+            Console.WriteLine("You want to buy: " + productName);
+            Console.WriteLine("Your balance is " + userBalance.ToString("C"));
+        }
+
+        private static void DisplayProductList(List<Product> productList)
+        {
+            Console.WriteLine();
+            Console.WriteLine("What would you like to buy?");
+            for (int i = 0; i < 7; i++)
+            {
+                Product product = productList[i];
+                Console.WriteLine(i + 1 + ": " + product.Name + " (" + product.Price.ToString("C") + ")");
+            }
+            Console.WriteLine(productList.Count + 1 + ": Exit");
+        }
+
+        private static void DisplayPurchaseSummary(string productName, double userBalance, int purchaseQuantity)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("You bought " + purchaseQuantity + " " + productName);
+            Console.WriteLine("Your new balance is " + userBalance.ToString("C"));
+            Console.ResetColor();
+        }
+
+        private static void DisplayInvalidUser()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine();
+            Console.WriteLine("You entered an invalid user.");
+            Console.ResetColor();
+        }
+
+        private static void DisplayInvalidPassword()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine();
+            Console.WriteLine("You entered an invalid password.");
+            Console.ResetColor();
+        }
+
+        private static void DisplayPurchasedCancelled()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine();
+            Console.WriteLine("Purchase cancelled");
+            Console.ResetColor();
+        }
+
+        private static void DisplayOutOfStock(string productName)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine();
+            Console.WriteLine("Sorry, " + productName + " is out of stock");
+            Console.ResetColor();
+        }
+
+        private static void DisplayNotEnoughMoney()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine();
+            Console.WriteLine("You do not have enough money to buy that.");
+            Console.ResetColor();
+        }
+
+        private static void DisplayCurrentBalance(double userBalance)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Your balance is " + userBalance.ToString("C"));
+        }
+
+        private static void DisplayLoginSuccessfulMessage(string userName)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine();
+            Console.WriteLine("Login successful! Welcome " + userName + "!");
+            Console.ResetColor();
+        }
+
+        private static void DisplayWelcomeMessage()
+        {
+            Console.WriteLine("Welcome to TUSC");
+            Console.WriteLine("---------------");
+        }
+
+        #endregion
+
+        #region Prompts for User Entry
+
+        private static string PromptUserForUsername()
+        {
+            Console.WriteLine();
+            return PromptUserForEntry("Enter Username:");
+        }
+
+        private static string PromptUserForPassword()
+        {
+            return PromptUserForEntry("Enter Password:");
+        }
+
+        private static string PromptUserForNumber()
+        {
+            return PromptUserForEntry("Enter a number:");
+        }
+
+        private static string PromptUserForPurchaseAmount()
+        {
+            return PromptUserForEntry("Enter amount to purchase:");
+        }
+
+        private static void PromptUserToExit()
+        {
+            Console.WriteLine();
+            PromptUserForEntry("Press Enter key to exit");
+        }
+
+        private static string PromptUserForEntry(string displayText)
+        {
+            Console.WriteLine(displayText);
+            return GetUserEntry();
         }
 
         private static string GetUserEntry()
         {
             return Console.ReadLine();
         }
+       
+        #endregion
+
     }
 }
