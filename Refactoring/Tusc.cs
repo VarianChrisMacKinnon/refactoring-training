@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 namespace Refactoring
 {
     public class Tusc
-    {        
+    {
         private static List<User> _userList;
         private static List<Product> _productList;
 
         public static int EXIT_NUMBER
         {
-            get { return _productList.Count + 1; }
+            get { return _productList.Count; }
         }
         public static int ZERO_INDEX_ADJUST
         {
@@ -32,10 +32,9 @@ namespace Refactoring
 
             // Login
             Login:
-            
+
             string userName = PromptUserForUsername();
 
-            // Validate Username
             if (!string.IsNullOrEmpty(userName))
             {
                 bool isValidUser = ValidateUser(userName);
@@ -44,44 +43,29 @@ namespace Refactoring
                 {
                     string userPassword = PromptUserForPassword();
 
-                    // Validate Password
                     bool isValidPassword = ValidateUserPassword(userName, userPassword);
 
                     if (isValidPassword)
                     {
-                        // Show welcome message
                         DisplayLoginSuccessfulMessage(userName);
-                        
-                        // Show remaining balance
-                        double userBalance = GetCurrentBalance(userName, userPassword);
-                        DisplayCurrentBalance(userBalance);                        
 
-                        // Show product list
+                        double userBalance = GetCurrentBalance(userName, userPassword);
+                        DisplayCurrentBalance(userBalance);
+
                         while (true)
                         {
-                            // Prompt for user input
                             DisplayProductList();
 
-                            // Prompt for user input
                             string answer = PromptUserForNumber();
                             int productChoice = Convert.ToInt32(answer);
-                            productChoice = productChoice - ZERO_INDEX_ADJUST; 
+                            productChoice = productChoice - ZERO_INDEX_ADJUST;
 
-                            // Check if user entered number that equals product count
                             if (productChoice == EXIT_NUMBER)
                             {
                                 UpdateUserBalance(userName, userPassword, userBalance);
 
-                                // Write out new balance
-                                string json = JsonConvert.SerializeObject(userList, Formatting.Indented);
-                                File.WriteAllText(@"Data\Users.json", json);
+                                UpdateDataFiles();
 
-                                // Write out new quantities
-                                string json2 = JsonConvert.SerializeObject(productList, Formatting.Indented);
-                                File.WriteAllText(@"Data\Products.json", json2);
-
-
-                                // Prevent console from closing
                                 PromptUserToExit();
                                 return;
                             }
@@ -89,7 +73,6 @@ namespace Refactoring
                             {
                                 DisplayPurchasePlan(userBalance, productList[productChoice].Name);
 
-                                // Prompt for user input
                                 answer = PromptUserForPurchaseAmount();
                                 int purchaseQuantity = Convert.ToInt32(answer);
 
@@ -128,7 +111,6 @@ namespace Refactoring
                     }
                     else
                     {
-                        // Invalid Password
                         DisplayInvalidPassword();
 
                         goto Login;
@@ -136,22 +118,44 @@ namespace Refactoring
                 }
                 else
                 {
-                    // Invalid User
                     DisplayInvalidUser();
 
                     goto Login;
                 }
             }
 
-            // Prevent console from closing
             PromptUserToExit();
         }
+
+        #region Update Data
+
+        private static void UpdateUserData()
+        {
+            string json = JsonConvert.SerializeObject(_userList, Formatting.Indented);
+            File.WriteAllText(@"Data\Users.json", json);
+        }
+
+        private static void UpdateDataFiles()
+        {
+            UpdateUserData();
+            UpdateProductData();
+        }
+
+        private static void UpdateProductData()
+        {
+            string json = JsonConvert.SerializeObject(_productList, Formatting.Indented);
+            File.WriteAllText(@"Data\Products.json", json);
+        }
+
+        #endregion
+
+        #region User Balance
 
         private static void UpdateUserBalance(string userName, string userPassword, double userBalance)
         {
             User user = FindUser(userName, userPassword);
 
-            if( user != null )
+            if (user != null)
             {
                 user.Balance = userBalance;
             }
@@ -163,19 +167,23 @@ namespace Refactoring
 
             User user = FindUser(userName, userPassword);
 
-            if( user != null )
+            if (user != null)
             {
                 userBalance = user.Balance;
             }
-            
+
             return userBalance;
         }
+
+        #endregion
+
+        #region User Validation
 
         private static bool ValidateUserPassword(string userName, string userPassword)
         {
             bool isValidPassword = false;
-            
-            if( FindUser(userName, userPassword) != null )
+
+            if (FindUser(userName, userPassword) != null)
             {
                 isValidPassword = true;
             }
@@ -187,13 +195,17 @@ namespace Refactoring
         {
             bool isValidUser = false;
 
-            if( FindUser(userName) != null )
+            if (FindUser(userName) != null)
             {
                 isValidUser = true;
             }
 
             return isValidUser;
         }
+
+        #endregion
+
+        #region FindUser
 
         private static User FindUser(string userName, string userPassword)
         {
@@ -225,9 +237,11 @@ namespace Refactoring
             return user;
         }
 
+        #endregion
+
         #region Display Messages
 
-        private static void DisplayPurchasePlan(double userBalance,string productName)
+        private static void DisplayPurchasePlan(double userBalance, string productName)
         {
             Console.WriteLine();
             Console.WriteLine("You want to buy: " + productName);
@@ -243,7 +257,7 @@ namespace Refactoring
                 Product product = _productList[i];
                 Console.WriteLine(i + ZERO_INDEX_ADJUST + ": " + product.Name + " (" + product.Price.ToString("C") + ")");
             }
-            Console.WriteLine(EXIT_NUMBER + ": Exit");
+            Console.WriteLine(EXIT_NUMBER + ZERO_INDEX_ADJUST + ": Exit");
         }
 
         private static void DisplayPurchaseSummary(string productName, double userBalance, int purchaseQuantity)
@@ -362,7 +376,7 @@ namespace Refactoring
         {
             return Console.ReadLine();
         }
-       
+
         #endregion
 
     }
