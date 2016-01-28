@@ -18,12 +18,12 @@ namespace Refactoring
 
             // Login
             Login:
-            bool loggedIn = false; // Is logged in?
+            bool isUserLoggedIn = false; // Is logged in?
 
             // Prompt for user input
             Console.WriteLine();
             Console.WriteLine("Enter Username:");
-            string name = Console.ReadLine();
+            string name = GetUserEntry();
 
             // Validate Username
             bool valUsr = false; // Is valid user?
@@ -44,7 +44,7 @@ namespace Refactoring
                 {
                     // Prompt for user input
                     Console.WriteLine("Enter Password:");
-                    string pwd = Console.ReadLine();
+                    string pwd = GetUserEntry();
 
                     // Validate Password
                     bool valPwd = false; // Is valid password?
@@ -62,7 +62,7 @@ namespace Refactoring
                     // if valid password
                     if (valPwd == true)
                     {
-                        loggedIn = true;
+                        isUserLoggedIn = true;
 
                         // Show welcome message
                         Console.Clear();
@@ -103,7 +103,7 @@ namespace Refactoring
 
                             // Prompt for user input
                             Console.WriteLine("Enter a number:");
-                            string answer = Console.ReadLine();
+                            string answer = GetUserEntry();
                             int num = Convert.ToInt32(answer);
                             num = num - 1; /* Subtract 1 from number
                             num = num + 1 // Add 1 to number */
@@ -133,7 +133,7 @@ namespace Refactoring
                                 // Prevent console from closing
                                 Console.WriteLine();
                                 Console.WriteLine("Press Enter key to exit");
-                                Console.ReadLine();
+                                GetUserEntry();
                                 return;
                             }
                             else
@@ -144,7 +144,7 @@ namespace Refactoring
 
                                 // Prompt for user input
                                 Console.WriteLine("Enter amount to purchase:");
-                                answer = Console.ReadLine();
+                                answer = GetUserEntry();
                                 int qty = Convert.ToInt32(answer);
 
                                 // Check if balance - quantity * price is less than 0
@@ -224,7 +224,12 @@ namespace Refactoring
             // Prevent console from closing
             Console.WriteLine();
             Console.WriteLine("Press Enter key to exit");
-            Console.ReadLine();
+            GetUserEntry();
+        }
+
+        private static string GetUserEntry()
+        {
+            return Console.ReadLine();
         }
     }
 }
