@@ -173,7 +173,7 @@ namespace UnitTestProject
         {
             // Update data file
             List<Product> tempProducts = DeepCopy<List<Product>>(originalProducts);
-            tempProducts.Where(u => u.Name == "Chips").Single().Qty = 0;
+            tempProducts.Where(u => u.Name == "Chips").Single().Quantity = 0;
 
             using (var writer = new StringWriter())
             {
